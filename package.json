@@ -1,0 +1,12 @@
+{
+  "name": "zenn-public",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:neutron63zf/zenn-public.git",
+  "author": "nkowne63rt <neutron63zf@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "zenn-cli": "^0.1.113"
+  }
+}

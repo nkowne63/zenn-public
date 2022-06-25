@@ -1,0 +1,25 @@
+title: "State of GraphQL 2022 用語説明"
+summary: 2022年6月15日にState of GraphQL 2022 Surveyが開始されました。
+
+  このSurveyではGraphQLの広い範囲にわたる調査や質問が為されましたが、知らない用語が多かった方も多かったのではないでしょうか。
+
+  この本では、State of GraphQLに出現したGraphQLの用語、ライブラリ、ツールを日本語で順次解説していきます。
+  GraphQLという分野の雰囲気を知りたい人、技術選定を行いたい人などの参考になれば幸いです。
+
+
+  また、この本は有料になっていますが、すべてのチャプターを無料で読むことができます。（ソースコードもGitHubで公開しています）
+
+  サポートをしたい場合は購入いただけるとありがたいです。
+topics: [GraphQL]
+published: false
+price: 200
+chapters:
+  - 01-language
+  - 02-directives
+  - 03-security-and-performance
+  - 04-other-features
+  - 05-server
+  - 06-client
+  - 07-api-generators
+  - 08-schema-builder
+  - 09-other-tools

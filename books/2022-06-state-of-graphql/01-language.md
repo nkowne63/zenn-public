@@ -1,4 +1,4 @@
 ---
-title: "Language編"
+title: "Language"
 free: true
 ---

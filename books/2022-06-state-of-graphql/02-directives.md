@@ -1,4 +1,4 @@
 ---
-title: "Directives編"
+title: "Directives"
 free: true
 ---

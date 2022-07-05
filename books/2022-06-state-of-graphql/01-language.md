@@ -45,6 +45,25 @@ directive @deprecated(
 
 # Custom Scalars
 
+GraphQL では Int や Float, String や Boolean などの、普通のプログラミング言語にありがちなプリミティブ型が一通り揃っています。また、type を使ってそれらの直積型を定義することもできます。
+
+一方で、実際にアプリケーションを作る上ではこれらのプリミティブ型に制約をつけたようなプリミティブ型が欲しくなることがしばしばあります。代表例としては Date がそれにあたるでしょう。Date を文字列で表現するにせよ、数値で表現するにせよ、GraphQL の SDL で Int や String とは違う扱いをしたくなることは想像できると思います。
+
+GraphQL では、そのようなカスタムな Scalar を以下のように定義することができます。
+
+```graphql
+scalar MyCustomScalar
+```
+
+これだけです。これによって、GraphQL の Scalar が使える場所ではどこでも MyCustomScalar が使えるようになります。
+
+一方で、もちろんこれだけでは実際に parse するときに問題が生じるため、これまた実際にフレームワークやライブラリに応じた実装を行う必要があります。
+
+## 参考
+
+- [Apollo Docs: Unions and interfaces](https://www.apollographql.com/docs/apollo-server/schema/unions-interfaces/)
+- [Apollo Docs: Custom scalars](https://www.apollographql.com/docs/apollo-server/schema/custom-scalars/)
+
 # Fragments
 
 # Unions

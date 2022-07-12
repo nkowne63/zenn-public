@@ -34,10 +34,23 @@ directive @deprecated(
 
 大体思いつける限り殆どの場所に Directive を指定できますね。
 
+また、repeatable キーワードを用いることによって、以下のように同じフィールドに二回 directive を書けるようになります。
+
+```graphql
+directive @delegateField(name: String!) repeatable on OBJECT | INTERFACE
+
+type Book @delegateField(name: "pageCount") @delegateField(name: "author") {
+  id: ID!
+}
+
+extend type Book @delegateField(name: "index")
+```
+
 もちろん、schema.graphql に定義しただけで使えるようになるわけではなく、各フレームワーク、ライブラリごとのカスタムロジックの実装が必要になります。
 
 ## 参考
 
+- [GraphQL: spec](https://spec.graphql.org/October2021/#sec-Type-System.Directives.Custom-Directives)
 - [Qiita: GraphQL のディレクティブについて](https://qiita.com/koffee0522/items/bb623f974c418f5e15b0)
 - [Apollo Docs: Creating schema directives](https://www.apollographql.com/docs/apollo-server/schema/creating-directives/)
 - [Apollo Docs: GraphQL schema basics](https://www.apollographql.com/docs/apollo-server/schema/schema/)
@@ -65,6 +78,138 @@ scalar MyCustomScalar
 - [Apollo Docs: Custom scalars](https://www.apollographql.com/docs/apollo-server/schema/custom-scalars/)
 
 # Fragments
+
+GraphQL ではクエリを書くことでクライアントからサーバーに対してリクエストを送るわけですが、その中で同じフィールドを繰り返し送ることになる場合がよくあります。
+
+例えば以下のクエリでは、id, name, profilePic のフィールドが繰り返しになっています。
+
+```graphql
+query noFragments {
+  user(id: 4) {
+    friends(first: 10) {
+      id
+      name
+      profilePic(size: 50)
+    }
+    mutualFriends(first: 10) {
+      id
+      name
+      profilePic(size: 50)
+    }
+  }
+}
+```
+
+こうしたフィールドの組は Fragment と呼ばれるものでくくりだすことができ、例えば以下のようになります。
+
+```graphql
+query withFragments {
+  user(id: 4) {
+    friends(first: 10) {
+      ...friendFields
+    }
+    mutualFriends(first: 10) {
+      ...friendFields
+    }
+  }
+}
+
+fragment friendFields on User {
+  id
+  name
+  profilePic(size: 50)
+}
+```
+
+JavaScript を書く人だとオブジェクトスプレッド構文をご存知だと思いますが、それと似たようなノリで展開してくれます。
+
+また、Fragment は入れ子にすることができます。
+
+```graphql
+fragment friendFields on User {
+  id
+  name
+  ...standardProfilePic
+}
+```
+
+## Fragment と変数
+
+Fragment の中で変数を使用する場合、その値は親のクエリから注入しなければなりません。
+
+```graphql
+query HeroComparison($first: Int = 3) {
+  leftComparison: hero(episode: EMPIRE) {
+    ...comparisonFields
+  }
+  rightComparison: hero(episode: JEDI) {
+    ...comparisonFields
+  }
+}
+
+fragment comparisonFields on Character {
+  name
+  friendsConnection(first: $first) {
+    totalCount
+    edges {
+      node {
+        name
+      }
+    }
+  }
+}
+```
+
+GraphQL 本体の spec には Fragment 単体で変数を持てる機能はありません。この状況を解決するには今の所 Relay を用いて@arguments / @argumentsDefinitions といった独自ディレクティブを使用することが必要そうです。
+また、参考のところにあるように Quramy さんが Apollo-Link でこのディレクティブを使えるようにするものを作成してくださっています。
+
+## Inline Fragment
+
+Fragment は名前付きのものだけでなく、インラインでフィールドを区別するために使用することもできます。
+
+後に述べますが、例えば union によってどちらの型が返ってくるかわからないようなクエリでは、ありうる場合を以下のようにインラインで列挙する必要があります。
+
+```graphql
+query inlineFragmentTyping {
+  profiles(handles: ["zuck", "coca-cola"]) {
+    handle
+    ... on User {
+      friends {
+        count
+      }
+    }
+    ... on Page {
+      likers {
+        count
+      }
+    }
+  }
+}
+```
+
+また、例えば以下のように条件に応じてプロパティーを含めるかどうかといったディレクティブなどをグループに適用することができるようになります。
+
+```graphql
+query inlineFragmentNoType($expandedInfo: Boolean) {
+  user(handle: "zuck") {
+    id
+    name
+    ... @include(if: $expandedInfo) {
+      firstName
+      lastName
+      birthday
+    }
+  }
+}
+```
+
+## 参考
+
+- [Qiita: GraphQL の Fragment colocation と variables でモヤついている](https://qiita.com/Quramy/items/1f9431b42d95ebdc59a8)
+- [GraphQL の Fragment についての話](https://zenn.dev/sjbworks/articles/0b34ce8aca6b72)
+- [GraphQL: spec](https://spec.graphql.org/October2021/#sec-Language.Fragments)
+- [GraphQL: Fragments](https://graphql.org/learn/queries/#fragments)
+- [Apollo Docs: Fragments](https://www.apollographql.com/docs/react/data/fragments/)
 
 # Unions
 

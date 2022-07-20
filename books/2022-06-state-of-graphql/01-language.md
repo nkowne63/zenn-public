@@ -211,6 +211,93 @@ query inlineFragmentNoType($expandedInfo: Boolean) {
 - [GraphQL: Fragments](https://graphql.org/learn/queries/#fragments)
 - [Apollo Docs: Fragments](https://www.apollographql.com/docs/react/data/fragments/)
 
-# Unions
+# Unions and Interfaces
 
-# Interfaces
+この 2 つは Survey では別々のものとして扱われていますが、一緒に説明されることが多いため、こちらでも一緒に説明することにします。また、先程の fragments を同時に使うことが多いです。
+
+基本的なモチベーションとしては、どちらも一つの型で複数の型を代表したいようなときにこれらを使うことができます。
+
+## Interfaces
+
+名前の通り、型（type）が実装するべきプロパティーと値を宣言したものです。とはいえ、GraphQL では、普通の言語の Interfaces のようにメソッドに相当するものはなく、データのプロパティーだけです。
+また、注意点として、interface で宣言したものは、それを implement する type でも必ず宣言する必要があります。
+
+```graphql
+interface Character {
+  id: ID!
+  name: String!
+  friends: [Character]
+  appearsIn: [Episode]!
+}
+
+type Human implements Character {
+  id: ID!
+  name: String!
+  friends: [Character]
+  appearsIn: [Episode]!
+  starships: [Starship]
+  totalCredits: Int
+}
+
+type Droid implements Character {
+  id: ID!
+  name: String!
+  friends: [Character]
+  appearsIn: [Episode]!
+  primaryFunction: String
+}
+```
+
+実際にクエリするには、以下のように inline fragment を使うのが便利です。逆に言うと、特定の type にしかないプロパティーを inline fragment なしで直接記述しようとするとエラーになります。
+
+```graphql
+query HeroForEpisode($ep: Episode!) {
+  hero(episode: $ep) {
+    __typename
+    name
+    ... on Droid {
+      primaryFunction
+    }
+  }
+}
+```
+
+## Unions
+
+Unions も一つの型で複数の型を代表できるという点では interfaces と非常に似ていますが、違う点もあります。
+それは、必ずしも interface のように、複数の型同士で同じフィルドを持つ必要がない点です。
+また、interface と違って、宣言時に union の型に含まれる型のリストをすべて列挙することも特徴です。
+
+```graphql
+union SearchResult = Book | Author
+
+type Book {
+  title: String!
+}
+
+type Author {
+  name: String!
+}
+```
+
+クエリでは、interface と同じように inline fragments を用いるのが便利です。
+
+```graphql
+query GetSearchResults {
+  search(contains: "Shakespeare") {
+    __typename
+    ... on Book {
+      title
+    }
+    ... on Author {
+      name
+    }
+  }
+}
+```
+
+## 参考
+
+- [AWS AppSync: GraphQL の Interface と Union](https://docs.aws.amazon.com/ja_jp/appsync/latest/devguide/interfaces-and-unions.html)
+- [Apollo Docs: Unions and interfaces](https://www.apollographql.com/docs/apollo-server/schema/unions-interfaces/)
+- [GraphQL: Schema](https://graphql.org/learn/schema/)

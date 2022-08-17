@@ -18,8 +18,11 @@ directive @deprecated(
 ```
 
 このように、directive を定義する際に引数や適用できる場所を指定することができます。
-適用できる場所に指定できる場所の一覧は以下のとおりです。
+適用できる場所に指定できる場所は大まかに 2 種類に分かれており、GraphQL の spec では ExecutableDirectiveLocation と TypeSystemDirectiveLocation に分けられています。Apollo Docs では後者のみの directive を schema directive、前者を含むものを query directive と呼び分けています。
 
+まず、TypeSystemDirectiveLocation (schema directive)は以下のものを指します。
+
+- SCHEMA（query, mutation, subscription のうちトップレベルのスキーマ定義オブジェクトであるもの）
 - SCALAR（Custom Scalar の定義）
 - OBJECT（Object 型の定義）
 - FIELD_DEFINITION（input type 以外のフィールド）
@@ -30,11 +33,22 @@ directive @deprecated(
 - ENUM_VALUE（Enum の値の定義）
 - INPUT_OBJECT（input type、mutation などの引数として現れたりする）
 - INPUT_FIELD_DEFINITION（input type のフィールド）
-- SCHEMA（トップレベルのスキーマ定義オブジェクト、GraphQL では query, mutation, subscription）
+
+また、ExecutableDirectiveLocation (query directive) は以下のものを指します。
+
+- QUERY（GraphQL クエリ）
+- MUTATION（GraphQL ミューテーション）
+- SUBSCRIPTION（GraphQL サブスクリプション）
+- FIELD（GraphQL のクエリなどのフィールド）
+- FRAGMENT_DEFINITION（フラグメント定義）
+- FRAGMENT_SPREAD（フラグメント内のスプレッド）
+- INLINE_FRAGMENT（インラインフラグメント）
+- VARIABLE_DEFINITION（変数定義）
 
 大体思いつける限り殆どの場所に Directive を指定できますね。
+Apollo Docs では query directive は実行時に query document を変形するために実装を制限されているようです。
 
-また、repeatable キーワードを用いることによって、以下のように同じフィールドに二回 directive を書けるようになります。
+さらに、repeatable キーワードを用いることによって、以下のように同じフィールドに二回同じ directive を書けるようになります。
 
 ```graphql
 directive @delegateField(name: String!) repeatable on OBJECT | INTERFACE
@@ -202,6 +216,8 @@ query inlineFragmentNoType($expandedInfo: Boolean) {
   }
 }
 ```
+
+Fragment の中でさらにこの構文を使うこともでき、その場合は Fragment Spread と呼ばれたりもします。
 
 ## 参考
 

@@ -37,9 +37,35 @@ free: true
 - [GraphQL: Improving Latency with @defer and @stream Directives](https://graphql.org/blog/2020-12-08-improving-latency-with-defer-and-stream-directives/)
 - [GitHub: Spec edits for @defer/@stream](https://github.com/graphql/graphql-spec/pull/742)
 
-# @skip
+# @skip / @include
 
-# @include
+@skip と@include ディレクティブは両方とも Boolean である if を引数に取るディレクティブで、フィールドやフラグメントスプレッド、インラインフラグメントに使うことができます。
+
+@skip は引数の if が true のときに、@include は if が false のときに GraphQL がフィールドを返さなくなるという効果があります。
+
+```graphql
+query myQuery($someTest: Boolean!) {
+  # $someTestがtrueのときはexperimentalFieldのときは飛ばされる。
+  experimentalField @skip(if: $someTest)
+}
+```
+
+## 両方指定したら？
+
+両方はある意味で真逆の存在ですので、意地悪をすることができます。
+
+```graphql
+query myQuery($someTest: Boolean!) {
+  experimentalField @include(if: $includeThis) @skip(if: $skipThis)
+}
+```
+
+この場合何が起こるのかというと、「skip が false かつ@include が true のとき「のみ」フィールドが帰ってくるべきである、と仕様に定められています。両方に true を指定したり、両方に false を指定したりするとフィールドは返ってきません。指定順によって変動が起こることもありません。
+
+## 参考
+
+- [GraphQL spec: 3.13.1 @skip](https://spec.graphql.org/October2021/#sec--skip)
+- [GraphQL spec: 3.13.2 @include](https://spec.graphql.org/October2021/#sec--include)
 
 # @deprecated
 

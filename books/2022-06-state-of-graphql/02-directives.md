@@ -60,7 +60,11 @@ query myQuery($someTest: Boolean!) {
 }
 ```
 
-この場合何が起こるのかというと、「skip が false かつ@include が true のとき「のみ」フィールドが帰ってくるべきである、と仕様に定められています。両方に true を指定したり、両方に false を指定したりするとフィールドは返ってきません。指定順によって変動が起こることもありません。
+この場合何が起こるのかというと、skip が false かつ@include が true のとき「のみ」フィールドが帰ってくるべきである、と仕様に定められています。
+
+両方に true を指定したり、両方に false を指定したりするとフィールドは返ってきません。
+
+指定順によって変動が起こることもありません。
 
 ## 参考
 
@@ -68,6 +72,23 @@ query myQuery($someTest: Boolean!) {
 - [GraphQL spec: 3.13.2 @include](https://spec.graphql.org/October2021/#sec--include)
 
 # @deprecated
+
+@deprecated はフィールドの定義と enum の値に指定して「このフィールドや値はもうサポートされてないよ/廃止されたよ」ということを通知するために使用するものです。
+
+reason という引数に使用をやめるべき理由を書くこともでき、何も書かない場合は「No longer supported」であることも定められています。
+
+GraphQL の仕様の例にもある通り、新しいフィールドへの誘導を書くこともできるようです。
+
+```graphql
+type ExampleType {
+  newField: String
+  oldField: String @deprecated(reason: "Use `newField`.")
+}
+```
+
+## 参考
+
+- [GraphQL spec: 3.13.3 @deprecated](https://spec.graphql.org/October2021/#sec--deprecated)
 
 # @specifiedBy
 

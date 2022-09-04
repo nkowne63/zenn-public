@@ -92,6 +92,20 @@ type ExampleType {
 
 # @specifiedBy
 
+@specifiedBy は custom scalar（1 章）の仕様がどこに書いてあるかを示すことができます。
+
+たとえば以下のとおりです。
+
+```gql
+scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
+```
+
+注意してほしいのは、これはあくまでも「人間が読むための仕様書」であり、これをもとに実装されているかどうかは実装次第であるということです。過信しすぎないようにしましょう。
+
+## 参考
+
+- [GraphQL spec: 3.13.4 @specifiedBy](https://spec.graphql.org/October2021/#sec--specifiedBy)
+
 # @defer
 
 # @stream

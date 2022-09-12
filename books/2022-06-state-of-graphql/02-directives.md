@@ -106,6 +106,143 @@ scalar UUID @specifiedBy(url: "https://tools.ietf.org/html/rfc4122")
 
 - [GraphQL spec: 3.13.4 @specifiedBy](https://spec.graphql.org/October2021/#sec--specifiedBy)
 
-# @defer
+# @defer / @stream について
 
-# @stream
+@defer / @stream は GraphQL の 2021 年現在の仕様には定められていません。そのためこのセクションは GitHub の Pull Request をもとに書くことになります。
+
+この仕様は公式の仕様には取り込まれていないため、実装ごとに挙動が異なったりこれから変更される可能性があります。ご注意ください。
+
+## モチベーション
+
+公式ブログによると、@defer / @stream は GraphQL のモデルの欠点を改善するためのものです。
+
+その欠点とは、「リクエストのデータが全部取得されるまでレスポンスが返ってこない」というものです。
+
+以下のように、非常にデータ取得に時間がかかる部分を含むクエリを考えてみましょう。
+
+```gql
+query ProfilePageQuery {
+  person(id: "some-id") {
+    ...personalProfile
+    ...friendsList # ここの取得に5秒くらいかかる
+  }
+}
+```
+
+たとえば SNS のマイページに自分のプロファイルとフレンドのリストを表示したいとして、リストがとても長いとしましょう。すると自分のプロファイルの取得が一瞬で終わるのにも関わらずフレンドリストの取得が終わるまでクライアントでは何も表示されません。これはユーザービリティーを著しく下げてしまいます。
+
+もちろんクエリを分割することもできますが、その場合は GraphQL の利点である、「1 回のクエリで必要なデータがすべて手に入る」という性質が殺されてしまいます。
+
+そこで、GraphQL のクエリを分けずに、かつ、重い部分を分ける方法として@defer / @stream が考案されました。
+
+## 挙動
+
+この挙動は[GitHub: Spec edits for @defer/@stream](https://github.com/graphql/graphql-spec/pull/742)を参照に書いています。
+
+以下のクエリを見てみましょう。
+
+```gql
+query {
+  person(id: "cGVvcGxlOjE=") {
+    ...HomeWorldFragment @defer(label: "homeWorldDefer")
+    name
+    films @stream(initialCount: 1, label: "filmsStream") {
+      title
+    }
+  }
+}
+fragment HomeWorldFragment on Person {
+  homeWorld {
+    name
+  }
+}
+```
+
+@defer / @stream ではともに label が必要であり、if で実際に効果を発動させるかフラグを与えることができます。また、@stream では initialCount を与えることができます。
+
+@defer はフラグメントスプレッドとインラインフラグメントに、@stream はフィールドに指定することができます。
+
+さて、これを実行すると最初は以下のレスポンスが返ってきます。
+
+```json
+{
+  "data": {
+    "person": {
+      "name": "Luke Skywalker",
+      "films": [{ "title": "A New Hope" }]
+    }
+  },
+  "hasNext": true
+}
+```
+
+ディレクティブが指定されていない name フィールドと、@stream で initialCount: 1 を指定した films で 1 つだけオブジェクトが返ってきています。
+
+一見普通の GraphQL レスポンスですが、「hasNext」というフィールドが true になっています。
+
+そして、次のレスポンスが以下のようになっています。
+
+```json
+{
+  "incremental": [
+    {
+      "label": "homeWorldDefer",
+      "path": ["person"],
+      "data": { "homeWorld": { "name": "Tatooine" } }
+    },
+    {
+      "label": "filmsStream",
+      "path": ["person", "films", 1],
+      "items": [{ "title": "The Empire Strikes Back" }]
+    }
+  ],
+  "hasNext": true
+}
+```
+
+data フィールドではなく incremental フィールドにデータが入っています。label がもとのクエリで指定した値であり、path にはデータがもとのクエリのどの部分にあたるのかが格納されています。
+
+3 つ目のレスポンスは以下の通りになっています。
+
+```json
+{
+  "incremental": [
+    {
+      "label": "filmsStream",
+      "path": ["person", "films", 2],
+      "items": [{ "title": "Return of the Jedi" }]
+    }
+  ],
+  "hasNext": true
+}
+```
+
+@defer に由来する部分が消えていますね。
+そして、最後のレスポンスが以下のようになります。
+
+```json
+{
+  "hasNext": false
+}
+```
+
+この「hasNext: false」をもってクライアントでは終了を判定することができます。
+
+## 実装
+
+さて、仕様で議論されていても実際に使えなければ意味がありません。しかも厄介なことに、GraphQL 仕様草稿では「実装しなくても良い（実装する場合は従ってね）」とされており、実装されていない場合は単に無視されてしいます。
+
+ここでは、GraphQL Helix と Apollo Client の 2 つの実装を見てみます。
+
+### GraphQL Helix
+
+### Apollo Client
+
+## 参考
+
+- [GitHub: Spec edits for @defer/@stream](https://github.com/graphql/graphql-spec/pull/742)
+- [GraphQL: Improving Latency with @defer and @stream Directives](https://graphql.org/blog/2020-12-08-improving-latency-with-defer-and-stream-directives/)
+- [Zenn: GraphQL の @defer, @stream ディレクティブを試してみる](https://zenn.dev/adwd/articles/53c991e373f84d)
+- [GraphQL Helix: Using the @defer and @stream directives](https://www.graphql-helix.com/docs/recipes/using-the-defer-and-stream-directives)
+- [GitHub: Support for defer/stream](https://github.com/apollographql/apollo-client/issues/7691)
+- [Apollo: Using the @defer directive in Apollo Client](https://www.apollographql.com/docs/react/data/defer/)

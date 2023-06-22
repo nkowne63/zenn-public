@@ -18,3 +18,9 @@ publication_name: ventus
 # 意地悪してみる
 
 # Reactでの挙動
+
+<!-- 
+https://github.com/tc39/proposal-explicit-resource-management
+
+https://babeljs.io/docs/babel-plugin-proposal-explicit-resource-management
+ -->

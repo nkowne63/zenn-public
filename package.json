@@ -7,6 +7,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "zenn-cli": "^0.1.113"
+    "zenn-cli": "^0.1.144"
   }
 }

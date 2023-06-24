@@ -501,5 +501,59 @@ SuppressedError
 # Reactでの挙動
 
 フロントエンドエンジニアとして気になるのは、Reactでの挙動です。
-大体予想はつくのですが、Reactの関数コンポーネント内でusingを行った場合、どうなるのでしょうか？
+大体予想はつくのですが、Reactの関数コンポーネント内でusingを行った場合、どうなるのかを見てみましょう。
 
+ReactをCreate React Appで無理やりBabelを使って確かめてみます。
+
+（フルのコードは[こちら](https://github.com/nkowne63/ts52-using-react)です。）
+
+```jsx
+import React, { useState } from 'react';
+
+Symbol.dispose = Symbol.for('Symbol.dispose')
+
+const rgen = (count) => ({
+  [Symbol.dispose]() {
+    console.log('disposed', count)
+  }
+})
+
+function App() {
+  const [count, setCount] = useState(0)
+  using r = rgen(count);
+  console.log("count", count)
+  return (
+    <div className="App">
+      <header className="App-header">
+        sample app
+      </header>
+      <button onClick={() => setCount(count => count+1)}>count: {count}</button>
+    </div>
+  );
+}
+
+export default App;
+```
+
+これを実行してボタンを何回か押してみると以下のようなログが出力されます。
+
+```log
+App.js:14 count 0
+App.js:7 disposed 0
+App.js:14 count 1
+App.js:7 disposed 1
+App.js:14 count 2
+App.js:7 disposed 2
+App.js:14 count 3
+App.js:7 disposed 3
+```
+
+レンダリングが走るごとにリソースの生成とdisposeが行われていることが見えます。
+なので、今まで`useEffect`フックで行われていたような、外部のリソースに対するアクセスとそのクリーンアップを`using`で行えわけではないようです。むしろ普通の変数宣言として扱ってよいでしょう。
+
+# まとめ
+
+この記事では、Explicit Resource Managementの動作の説明と確認を一通り概説しました。実際に使う際の参考になれば幸いです。
+
+なお、再度注意ですが、この記事でのusing宣言の動作はbabelのtransform及びes-shimsのpolyfill実装に依存しており、実際のv8エンジンやTypeScriptのトランスパイル出力の挙動とは異なる可能性があります。
+説明している挙動がusing宣言に対応している処理系の実際の挙動と異なる場合はコメントをいただけると幸いです。

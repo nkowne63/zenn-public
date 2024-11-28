@@ -3,7 +3,7 @@ title: "Webフロントエンドで脱SSRして料金を6割節約した話"
 emoji: "⏭️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["nuxt", "ssr", "csr"]
-published: false
+published: true
 publication_name: ventus
 ---
 

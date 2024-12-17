@@ -1,5 +1,5 @@
 ---
-title: "脱SSRによる6割料金削減の裏側と苦しんだ部分"
+title: "脱SSRによる6割料金削減の裏側"
 emoji: "🚶"
 type: "idea" # tech: 技術記事 / idea: アイデア
 topics: ["nuxt", "ssr", "csr", "contest2024"]

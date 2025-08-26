@@ -3,7 +3,7 @@ title: Terraform ハンズオンを組織で安全かつスムーズに進める
 emoji: 🧑‍🏫
 type: tech
 topics: ["terraform"]
-published: false
+published: true
 publication_name: ventus
 ---
 
